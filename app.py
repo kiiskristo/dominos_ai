@@ -19,7 +19,6 @@ class MoveSuggestionAgent(Agent):
 validator = MoveValidatorAgent()
 suggester = MoveSuggestionAgent()
 
-
 @app.route('/move', methods=['POST'])
 def move():
     data = request.json
