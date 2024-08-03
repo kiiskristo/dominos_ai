@@ -1,39 +1,22 @@
-from flask import Flask, request, jsonify
-from swarms import Agent
+from game_manager import GameManager
+from ai_agent import AIAgent
 
-app = Flask(__name__)
+# Initialize game manager and AI agents
+game_manager = GameManager()
+ai_agent1 = AIAgent("AI1")
+ai_agent2 = AIAgent("AI2")
 
-# Define a simple agent for move validation
-class MoveValidatorAgent(Agent):
-    def validate_move(self, game_state, move):
-        # Dummy implementation of move validation
-        return True
+# Game loop
+while True:
+    current_player = game_manager.get_current_player()
+    print(f"It's {current_player}'s turn.")
 
-# Define a simple agent for suggesting moves
-class MoveSuggestionAgent(Agent):
-    def suggest_move(self, game_state, player_hand):
-        # Dummy implementation of move suggestion
-        return {"tile_played": "6-3", "position": "right", "orientation": "landscape"}
+    if "AI" in current_player:
+        ai_agent = ai_agent1 if current_player == "AI1" else ai_agent2
+        move = ai_agent.generate_move(game_manager.get_board_state())
+        print(f"{current_player} plays: {move}")
+    else:
+        move = input(f"{current_player}, enter your move: ")
 
-# Initialize agents
-validator = MoveValidatorAgent()
-suggester = MoveSuggestionAgent()
-
-@app.route('/move', methods=['POST'])
-def move():
-    data = request.json
-    game_state = data.get('current_board_state', [])
-    player_hand = data.get('player_hand', [])
-    move = data.get('move', {})
-
-    # Validate move
-    valid = validator.validate_move(game_state, move)
-    if not valid:
-        return jsonify({"error": "Invalid move"}), 400
-
-    # Suggest next move
-    suggestion = suggester.suggest_move(game_state, player_hand)
-    return jsonify({"suggestion": suggestion})
-
-if __name__ == '__main__':
-    app.run(debug=True)
+    game_manager.update_board(move)
+    print(f"Board state: {game_manager.get_board_state()}")
